@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes gridMove {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(-25px, -25px);
+  }
+}
+
+.animate-grid {
+  animation: gridMove 10s linear infinite;
+}
