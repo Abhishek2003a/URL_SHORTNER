@@ -1,5 +1,5 @@
 const Url = require("../model/urlsSchema");
-
+const generateShortCode = require("../services/generateShortCode");
 const getAllURLs = async (req, res) => {
   try {
     const userId = req.userId;
@@ -19,9 +19,9 @@ const putShortURL = async (req, res) => {
     if (!originalURL) {
       return res.status(400).json({ message: "Original URL is required" });
     }
-    const shortCode = Math.random().toString(36).substring(2, 8);
+    const shortCode = await generateShortCode();
     const userId = req.userId;
-    await Url.create({ originalURL, shortCode, userId });
+    await Url.save({ originalURL, shortCode, userId });
     res
       .status(201)
       .json({
