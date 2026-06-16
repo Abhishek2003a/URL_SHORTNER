@@ -6,4 +6,5 @@ const {
 const validateAuth = require("../middleware/validateAuth");
 router.post("/register", validateAuth, SignupHandler);
 router.post("/login", validateAuth, LoginHandler);
+// router.get("/logout", validateAuth, LogoutHandler);
 module.exports = router;

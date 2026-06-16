@@ -5,16 +5,16 @@ const seedCounter = async () => {
     const existing = await Counter.countDocuments();
     if (existing > 0) {
       console.log("Counter collection already seeded");
-      process.exit(0);
+      // process.exit(0);
+      return;
     }
-    await Counter.insertMany([
-      { id: 1, seq: 150000 },
-      { id: 2, seq: 16666666641667 },
-      { id: 3, seq: 33333333283334 },
-      { id: 4, seq: 49999999925001 },
-      { id: 5, seq: 66666666566668 },
-      { id: 6, seq: 83333333208335 },
-    ]);
+    let counterData = [];
+    counterData.push({ id: 1, seq: 10000 });
+    for (let i = 2; i <= 1000; i++) {
+      counterData.push({ id: i, seq: i * 100000000000 });
+    }
+
+    await Counter.insertMany(counterData);
     console.log("Counter seeded successfully");
     process.exit(0);
   } catch (error) {

@@ -1,4 +1,7 @@
-import LandingPage from "./components/landingPage";
-export default function App() {
-  return <LandingPage />;
-}
+import AppRoutes from "./routes/AppRoutes";
+
+const App = () => {
+  return <AppRoutes />;
+};
+
+export default App;

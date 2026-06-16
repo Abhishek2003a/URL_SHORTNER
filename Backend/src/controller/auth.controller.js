@@ -5,9 +5,10 @@ const { v4: uuidv4 } = require("uuid");
 
 const SignupHandler = async (req, res) => {
   const { email, password, userName } = req.body;
-
+  console.log(req.body);
   const existingUser = await User.findOne({ email });
   if (existingUser) {
+    console.log("User already exists");
     return res.status(400).json({
       message: "User already exists",
     });
@@ -15,7 +16,7 @@ const SignupHandler = async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
   await User.create({
-    userId: uuid.v4(),
+    userId: uuidv4(),
     userName,
     email,
     password: hashedPassword,
