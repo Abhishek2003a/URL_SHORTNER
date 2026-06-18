@@ -20,15 +20,15 @@ const LoginCard = ({ onClose, onSwitch }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // const res = await login(formData);
-    const res = await fetch("http://localhost:3000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-    const data = await res.json();
+    const res = await login(formData);
+    // const res = await fetch("http://localhost:3000/api/auth/login", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify(formData),
+    // });
+    const data = res;
     console.log(data);
 
     if (data.success) {

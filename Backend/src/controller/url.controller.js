@@ -20,6 +20,12 @@ const putShortURL = async (req, res) => {
       return res.status(400).json({ message: "Original URL is required" });
     }
     console.log("Original URL received:", originalUrl);
+    console.log("Validating original URL...");
+    if (!validateURL(originalUrl)) {
+      console.log("Invalid URL format:", originalUrl);
+      return res.status(400).json({ message: "Invalid URL format" });
+    }
+    console.log("Original URL is valid. Proceeding to generate short code...");
 
     console.log("Generating short code...");
     const shortCode = await generateShortCode();
@@ -52,4 +58,25 @@ const getOriginalURL = async (req, res) => {
   }
 };
 
-module.exports = { getAllURLs, putShortURL, getOriginalURL };
+const redirecttoOriginalURL = async (req, res) => {
+  try {
+    console.log("Redirecting short URL...");
+    const { shortCode } = req.params;
+    console.log("Short code received for redirection:", shortCode);
+    const url = await URL.findOne({ shortCode });
+    if (!url) {
+      return res.status(404).json({ message: "Short URL not found" });
+    }
+    res.redirect(url.originalURL);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+module.exports = {
+  getAllURLs,
+  putShortURL,
+  getOriginalURL,
+  redirecttoOriginalURL,
+};

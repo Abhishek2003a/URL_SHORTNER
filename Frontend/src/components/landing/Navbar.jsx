@@ -27,7 +27,9 @@ const Navbar = ({ onLogin, onSignup }) => {
         </div>
       ) : (
         <div className="flex items-center gap-4">
-          <p className="text-gray-300">{user?.username}</p>
+          <p className="text-gray-300 capitalize">
+            {(user?.username || user?.userName || "User").split(" ")[0]}
+          </p>
 
           <button
             onClick={logout}

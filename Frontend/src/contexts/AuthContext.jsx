@@ -1,20 +1,18 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
   const [token, setToken] = useState(
-    localStorage.getItem("token") || null,
+    () => localStorage.getItem("token") || null,
   );
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   /*
     ===================================
@@ -24,12 +22,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-
+    console.log("Stored User:", storedUser);
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
+    } else {
+      setUser(null);
+      setToken(null);
     }
-
-    setLoading(false);
   }, [token]);
 
   /*
@@ -45,31 +44,28 @@ export const AuthProvider = ({ children }) => {
       /*
         API CALL WILL COME HERE
       */
-
-      // TEMP MOCK RESPONSE
-      const mockResponse = {
-        token: "mock-jwt-token",
-        user: {
-          id: "1",
-          username: "Abhishek",
-          email: formData.email,
+      // console.log("Login API Called with:", formData);
+      const response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      };
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
 
-      localStorage.setItem("token", mockResponse.token);
+      if (!data.success) {
+        return { success: false, message: data.message || "Login failed" };
+      }
+      console.log("Login successful, received data:", data);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify(mockResponse.user),
-      );
+      setToken(data.token);
+      console.log("User set in context:", data.user);
+      setUser(data.user);
 
-      setToken(mockResponse.token);
-
-      setUser(mockResponse.user);
-
-      return {
-        success: true,
-      };
+      return { success: true };
     } catch (error) {
       console.log(error);
 
@@ -96,30 +92,26 @@ export const AuthProvider = ({ children }) => {
         API CALL WILL COME HERE
       */
 
-      // TEMP MOCK RESPONSE
-      const mockResponse = {
-        token: "mock-jwt-token",
-        user: {
-          id: "1",
-          username: formData.username,
-          email: formData.email,
+      const response = await fetch("http://localhost:3000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      };
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
 
-      localStorage.setItem("token", mockResponse.token);
+      if (!data.success) {
+        return { success: false, message: data.message || "Signup failed" };
+      }
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify(mockResponse.user),
-      );
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      setToken(mockResponse.token);
+      setToken(data.token);
+      setUser(data.user);
 
-      setUser(mockResponse.user);
-
-      return {
-        success: true,
-      };
+      return { success: true };
     } catch (error) {
       console.log(error);
 
@@ -158,19 +150,13 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     loading,
-
     login,
     signup,
     logout,
-
     isAuthenticated: !!token,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 /*

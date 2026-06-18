@@ -8,10 +8,11 @@ import Footer from "../components/landing/Footer";
 import LoginCard from "../components/auth/LoginCard";
 import SignupCard from "../components/auth/SignupCard";
 import MainLayout from "../layouts/MainLayout";
-
+import { useAuth } from "../contexts/AuthContext";
 const LandingPage = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   return (
     <MainLayout>
@@ -52,15 +53,12 @@ const LandingPage = () => {
           onLogin={() => setShowLogin(true)}
           onSignup={() => setShowSignup(true)}
         />
-
         <HeroSection />
-
         <Features />
-
         <HowItWorks />
-
+        !(isAuthenticated) && (
         <CTA onSignup={() => setShowSignup(true)} />
-
+        )
         <Footer />
       </div>
     </MainLayout>
