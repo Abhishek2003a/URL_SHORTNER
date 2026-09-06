@@ -1,18 +1,25 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
+
 import Navbar from "../components/landing/Navbar";
 import HeroSection from "../components/landing/HeroSection";
 import Features from "../components/landing/Features";
 import HowItWorks from "../components/landing/HowItWorks";
 import CTA from "../components/landing/CTA";
 import Footer from "../components/landing/Footer";
-import LoginCard from "../components/auth/LoginCard";
+
+import LoginCard from "../components/auth/loginCard";
 import SignupCard from "../components/auth/SignupCard";
+
 import MainLayout from "../layouts/MainLayout";
 import { useAuth } from "../contexts/AuthContext";
 const LandingPage = () => {
-  const [showLogin, setShowLogin] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const [showLogin, setShowLogin] = useState(
+    Boolean(location.state?.from && !isAuthenticated),
+  );
+  const [showSignup, setShowSignup] = useState(false);
 
   return (
     <MainLayout>
@@ -56,9 +63,7 @@ const LandingPage = () => {
         <HeroSection />
         <Features />
         <HowItWorks />
-        !(isAuthenticated) && (
-        <CTA onSignup={() => setShowSignup(true)} />
-        )
+        {!isAuthenticated && <CTA onSignup={() => setShowSignup(true)} />}
         <Footer />
       </div>
     </MainLayout>
