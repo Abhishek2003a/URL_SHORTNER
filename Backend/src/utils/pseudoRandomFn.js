@@ -1,7 +1,8 @@
 const counter = require("../model/counterSchema");
-let randomInt = (Math.random() * 10) % 6;
-randomInt++;
+
 const getNextSequence = async () => {
+  let randomInt = Math.floor(Math.random() * 1000)+1;
+  randomInt++;
   const result = await counter.findOneAndUpdate(
     { id: randomInt },
     { $inc: { seq: 1 } },
