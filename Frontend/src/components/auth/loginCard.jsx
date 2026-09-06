@@ -1,16 +1,24 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
 const LoginCard = ({ onClose, onSwitch }) => {
   const { login, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const handleChange = (e) => {
+    if (error) {
+      setError("");
+    }
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -20,19 +28,23 @@ const LoginCard = ({ onClose, onSwitch }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await login(formData);
-    // const res = await fetch("http://localhost:3000/api/auth/login", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(formData),
-    // });
-    const data = res;
-    console.log(data);
+    setError("");
+    const data = await login(formData);
 
     if (data.success) {
+      const from = location.state?.from;
+
+      const destination = from
+        ? `${from.pathname}${from.search}${from.hash}`
+        : "/dashboard";
+
       onClose();
+
+      navigate(destination, {
+        replace: true,
+      });
+    } else {
+      setError(data.message || "Login failed. Please try again.");
     }
   };
 
@@ -74,6 +86,8 @@ const LoginCard = ({ onClose, onSwitch }) => {
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
+
+        {error && <p className="text-red-400 text-sm text-center"> {error} </p>}
 
         <button
           type="submit"

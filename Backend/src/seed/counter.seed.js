@@ -5,7 +5,6 @@ const seedCounter = async () => {
     const existing = await Counter.countDocuments();
     if (existing > 0) {
       console.log("Counter collection already seeded");
-      // process.exit(0);
       return;
     }
     let counterData = [];
@@ -16,10 +15,9 @@ const seedCounter = async () => {
 
     await Counter.insertMany(counterData);
     console.log("Counter seeded successfully");
-    process.exit(0);
   } catch (error) {
     console.error("Error seeding counter:", error);
-    process.exit(1);
+    throw error;
   }
 };
 module.exports = seedCounter;

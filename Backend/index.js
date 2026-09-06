@@ -2,9 +2,41 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
-app.use(cors());
+require("dotenv").config();
+
+const requiredEnvVars = [
+  "MONGO_URI",
+  "JWT_ACCESS_SECRET",
+  "JWT_REFRESH_SECRET",
+  "chars",
+];
+
+const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
+if (missingEnvVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
+  process.exit(1);
+}
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 app.use(express.json());
-const config = require("dotenv").config();
+app.use((req, _res, next) => {
+  req.cookies = Object.fromEntries(
+    (req.headers.cookie || "")
+      .split(";")
+      .filter(Boolean)
+      .map((cookie) => {
+        const [key, ...value] = cookie.trim().split("=");
+        return [key, decodeURIComponent(value.join("="))];
+      }),
+  );
+  next();
+});
+
 const connectDb = require("./src/config/db");
 connectDb();
 // const seedCounter =  require("./src/seed/counter.seed");

@@ -1,23 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
   const [url, setUrl] = useState("");
-  const [shortUrl, setShortUrl] = useState("");
+  const navigate = useNavigate();
 
   const handleShorten = async () => {
     if (!url) return;
-    console.log("Shortening URL API Called:", url);
-    const shortUrl = await fetch(`http://localhost:3000/api/user/shorten`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ originalUrl: url }),
-    }).then((res) => res.json());
-
-    console.log(shortUrl);
-    setShortUrl(shortUrl.shortUrl);
-    // setShortUrl("https://sho.rt/" + Math.random().toString(36).substring(7));
+    navigate("/create-url", { state: { originalUrl: url } });
   };
 
   return (
@@ -44,15 +34,9 @@ const HeroSection = () => {
           onClick={handleShorten}
           className="bg-white text-black px-6 py-4 rounded-2xl font-semibold hover:bg-gray-200 transition duration-300"
         >
-          Shorten
+          Shorten URL
         </button>
       </div>
-
-      {shortUrl && (
-        <div className="mt-6 bg-green-500/10 border border-green-500/20 rounded-2xl p-4 max-w-xl mx-auto backdrop-blur">
-          <p className="text-green-400 break-all">{shortUrl}</p>
-        </div>
-      )}
     </section>
   );
 };

@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
 const SignupCard = ({ onClose, onSwitch }) => {
   const { signup, loading } = useAuth();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -12,6 +18,9 @@ const SignupCard = ({ onClose, onSwitch }) => {
   });
 
   const handleChange = (e) => {
+    if (error) {
+      setError("");
+    }
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -24,7 +33,19 @@ const SignupCard = ({ onClose, onSwitch }) => {
     const data = await signup(formData);
 
     if (data.success) {
+      const from = location.state?.from;
+
+      const destination = from
+        ? `${from.pathname}${from.search}${from.hash}`
+        : "/dashboard";
+
       onClose();
+
+      navigate(destination, {
+        replace: true,
+      });
+    } else {
+      setError(data.message || "Signup failed. Please try again.");
     }
   };
 
@@ -76,6 +97,8 @@ const SignupCard = ({ onClose, onSwitch }) => {
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
+
+        {error && <p className="text-red-400 text-sm text-center"> {error} </p>}
 
         <button
           type="submit"

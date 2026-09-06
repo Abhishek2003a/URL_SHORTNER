@@ -1,35 +1,36 @@
-import { createContext, useContext, useEffect, useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useCallback, useContext, useState } from "react";
 
 const AuthContext = createContext();
+
+const normalizeUser = (user) => {
+  if (!user) return null;
+
+  return {
+    id: user.id || user.userId,
+    username: user.username || user.userName || "User",
+    email: user.email || "",
+  };
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
+    if (!storedUser) return null;
+
+    try {
+      return normalizeUser(JSON.parse(storedUser));
+    } catch {
+      localStorage.removeItem("user");
+      return null;
+    }
   });
 
-  const [token, setToken] = useState(
+  const [accessToken, setToken] = useState(
     () => localStorage.getItem("token") || null,
   );
 
   const [loading, setLoading] = useState(false);
-
-  /*
-    ===================================
-            CHECK AUTH ON LOAD
-    ===================================
-  */
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    console.log("Stored User:", storedUser);
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      setUser(null);
-      setToken(null);
-    }
-  }, [token]);
 
   /*
     ===================================
@@ -40,13 +41,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (formData) => {
     try {
       setLoading(true);
-
-      /*
-        API CALL WILL COME HERE
-      */
-      // console.log("Login API Called with:", formData);
       const response = await fetch("http://localhost:3000/api/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -57,18 +54,15 @@ export const AuthProvider = ({ children }) => {
       if (!data.success) {
         return { success: false, message: data.message || "Login failed" };
       }
-      console.log("Login successful, received data:", data);
+      const loggedInUser = normalizeUser(data.user);
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(loggedInUser));
 
       setToken(data.token);
-      console.log("User set in context:", data.user);
-      setUser(data.user);
+      setUser(loggedInUser);
 
       return { success: true };
-    } catch (error) {
-      console.log(error);
-
+    } catch {
       return {
         success: false,
         message: "Login failed",
@@ -87,34 +81,29 @@ export const AuthProvider = ({ children }) => {
   const signup = async (formData) => {
     try {
       setLoading(true);
-
-      /*
-        API CALL WILL COME HERE
-      */
-
       const response = await fetch("http://localhost:3000/api/auth/register", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
+
       const data = await response.json();
 
       if (!data.success) {
         return { success: false, message: data.message || "Signup failed" };
       }
 
+      const signedUpUser = normalizeUser(data.user);
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
+      localStorage.setItem("user", JSON.stringify(signedUpUser));
       setToken(data.token);
-      setUser(data.user);
+      setUser(signedUpUser);
 
       return { success: true };
-    } catch (error) {
-      console.log(error);
-
+    } catch {
       return {
         success: false,
         message: "Signup failed",
@@ -129,16 +118,37 @@ export const AuthProvider = ({ children }) => {
                 LOGOUT
     ===================================
   */
+  const logout = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/logout", {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        throw new Error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setToken(null);
+      setUser(null);
+    }
 
-  const logout = () => {
-    localStorage.removeItem("token");
-
-    localStorage.removeItem("user");
-
-    setToken(null);
-
-    setUser(null);
+    return { success: true };
   };
+
+  const setAccessToken = useCallback((newToken) => {
+    if (newToken) {
+      localStorage.setItem("token", newToken);
+    } else {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+    }
+    setToken(newToken);
+  }, []);
 
   /*
     ===================================
@@ -148,12 +158,13 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    token,
+    accessToken,
+    setAccessToken,
     loading,
     login,
     signup,
     logout,
-    isAuthenticated: !!token,
+    isAuthenticated: !!accessToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
