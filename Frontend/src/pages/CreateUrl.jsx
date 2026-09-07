@@ -10,19 +10,28 @@ const CreateUrl = () => {
   const [customCode, setCustomCode] = useState("");
   const [createdUrl, setCreatedUrl] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchWithAuth = useFetchWithAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setCreatedUrl("");
+    setIsSubmitting(true);
 
     try {
       const result = await createShortUrl(url, customCode, fetchWithAuth);
-      if (result.success) {
-        setCreatedUrl(result.shortURL);
+      if (result.success && result.url?.shortUrl) {
+        setCreatedUrl(result.url.shortUrl);
+        setUrl("");
+        setCustomCode("");
+      } else {
+        setError(result.message || "Failed to create short URL");
       }
     } catch (err) {
       setError(err.message || "Failed to create short URL");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -58,6 +67,7 @@ const CreateUrl = () => {
             <input
               type="url"
               required
+              disabled={isSubmitting}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com/your-long-url"
@@ -75,6 +85,7 @@ const CreateUrl = () => {
                 short.ly/
               </span>
               <input
+                disabled={isSubmitting}
                 value={customCode}
                 onChange={(e) => setCustomCode(e.target.value)}
                 placeholder="my-link"
@@ -120,9 +131,10 @@ const CreateUrl = () => {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-white px-5 py-3 font-semibold text-black transition hover:bg-gray-200"
+            disabled={isSubmitting}
+            className="w-full rounded-xl bg-white px-5 py-3 font-semibold text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:bg-gray-400"
           >
-            Shorten URL
+            {isSubmitting ? "Creating..." : "Shorten URL"}
           </button>
         </form>
       </div>

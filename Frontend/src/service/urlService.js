@@ -24,9 +24,22 @@ export const createShortUrl = async (
     body: JSON.stringify({ originalUrl, customCode }),
   });
   if (!response.ok) {
-    console.error("Error creating short URL:", response.statusText);
-    throw new Error("Failed to create short URL");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to create short URL");
   }
   const data = await response.json();
+  return data;
+};
+
+export const deleteShortUrl = async (urlId, FetchWithAuth) => {
+  const response = await FetchWithAuth(`/api/user/my-urls/${urlId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete URL");
+  }
+
+  const data = await response.json().catch(() => ({}));
   return data;
 };

@@ -3,6 +3,13 @@ import { useAuth } from "../../contexts/AuthContext";
 const Navbar = ({ onLogin, onSignup }) => {
   const { user, logout, isAuthenticated } = useAuth();
 
+  const handleLogout = () => {
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (!confirmed) return;
+
+    logout();
+  };
+
   return (
     <nav className="flex justify-between items-center px-6 py-5">
       <h1 className="text-2xl font-bold tracking-wide">
@@ -32,7 +39,7 @@ const Navbar = ({ onLogin, onSignup }) => {
           </p>
 
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="px-5 py-2 rounded-xl bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 transition"
           >
             Logout
