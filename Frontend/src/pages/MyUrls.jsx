@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getUserAllUrls } from "../service/urlService";
+import { deleteShortUrl, getUserAllUrls } from "../service/urlService";
 import useFetchWithAuth from "../hooks/useFetchWithAuth";
 
 const MyUrls = () => {
@@ -21,6 +21,7 @@ const MyUrls = () => {
   const [urls, setUrls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deletingUrlId, setDeletingUrlId] = useState("");
   const fetchWithAuth = useFetchWithAuth();
 
   useEffect(() => {
@@ -56,6 +57,34 @@ const MyUrls = () => {
     await navigator.clipboard?.writeText(url.shortUrl);
     setCopied(url.shortCode);
     setTimeout(() => setCopied(""), 1500);
+  };
+
+  const handleDelete = async (url) => {
+    const urlId = url.id || url._id;
+
+    if (!urlId || deletingUrlId) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${url.shortUrl || url.shortCode}?`,
+    );
+
+    if (!confirmed) return;
+
+    setDeletingUrlId(urlId);
+    setError("");
+
+    try {
+      await deleteShortUrl(urlId, fetchWithAuth);
+      setUrls((currentUrls) =>
+        currentUrls.filter(
+          (currentUrl) => (currentUrl.id || currentUrl._id) !== urlId,
+        ),
+      );
+    } catch (err) {
+      setError(err.message || "Failed to delete URL");
+    } finally {
+      setDeletingUrlId("");
+    }
   };
 
   return (
@@ -210,7 +239,9 @@ const MyUrls = () => {
                       </a>
 
                       <button
-                        className="rounded-lg p-2 text-slate-500 hover:bg-red-400/10 hover:text-red-300"
+                        onClick={() => handleDelete(url)}
+                        disabled={deletingUrlId === (url.id || url._id)}
+                        className="rounded-lg p-2 text-slate-500 hover:bg-red-400/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
                         title="Delete"
                       >
                         <Trash2 size={16} />

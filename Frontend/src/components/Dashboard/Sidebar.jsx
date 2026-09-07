@@ -27,6 +27,10 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const navigate = useNavigate();
   const handleLogout = async () => {
     if (loggingOut) return;
+
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (!confirmed) return;
+
     try {
       setLoggingOut(true);
       const result = await logout();
