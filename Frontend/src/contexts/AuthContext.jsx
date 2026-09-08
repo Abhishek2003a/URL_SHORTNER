@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useState } from "react";
+import { getApiUrl } from "../config/api";
 
 const AuthContext = createContext();
 
@@ -41,7 +42,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (formData) => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/auth/login", {
+      const response = await fetch(getApiUrl("/api/auth/login"), {
         method: "POST",
         credentials: "include",
         headers: {
@@ -81,7 +82,7 @@ export const AuthProvider = ({ children }) => {
   const signup = async (formData) => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/auth/register", {
+      const response = await fetch(getApiUrl("/api/auth/register"), {
         method: "POST",
         credentials: "include",
         headers: {
@@ -120,7 +121,7 @@ export const AuthProvider = ({ children }) => {
   */
   const logout = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/auth/logout", {
+      const res = await fetch(getApiUrl("/api/auth/logout"), {
         method: "DELETE",
         credentials: "include",
       });

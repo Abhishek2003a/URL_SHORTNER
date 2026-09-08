@@ -1,8 +1,10 @@
 // src/api/fetchWithAuth.js
+import { getApiUrl } from "../config/api";
+
 let refreshPromise = null;
-const API_URL = "http://localhost:3000";
+
 const refreshAccessToken = async (setAccessToken) => {
-  const response = await fetch(`${API_URL}/api/auth/refresh`, {
+  const response = await fetch(getApiUrl("/api/auth/refresh"), {
     method: "POST",
     credentials: "include",
   });
@@ -23,7 +25,7 @@ export const fetchWithAuth = async (
   setAccessToken,
 ) => {
   // 1. Original request
-  let response = await fetch(`${API_URL}${endpoint}`, {
+  let response = await fetch(getApiUrl(endpoint), {
     ...options,
 
     headers: {
@@ -68,7 +70,7 @@ export const fetchWithAuth = async (
     const newAccessToken = await refreshPromise;
 
     // 4. Retry original request
-    return await fetch(`${API_URL}${endpoint}`, {
+    return await fetch(getApiUrl(endpoint), {
       ...options,
 
       headers: {
