@@ -1,15 +1,61 @@
-import { ArrowLeft, CalendarDays, Link2, MousePointerClick } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Link2,
+  MousePointerClick,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import BarChart from "../components/Dashboard/BarChart";
 import PieChart from "../components/Dashboard/PieChart";
 import AnalyticsOverview from "../components/Dashboard/AnalyticsOverview";
-import { analyticsData, dummyUrls } from "../data/dashboardData";
+import useFetchWithAuth from "../hooks/useFetchWithAuth";
+import { getUrlAnalytics } from "../service/urlService";
 
 const Analytics = () => {
   const { shortCode } = useParams();
+  const FetchWithAuth = useFetchWithAuth();
+  const [selectedUrl, setSelectedUrl] = useState(null);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const selectedUrl =
-    dummyUrls.find((url) => url.shortCode === shortCode) || dummyUrls[0];
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await getUrlAnalytics(shortCode, FetchWithAuth);
+        setSelectedUrl(data.url || data.urls?.[0] || null);
+        setAnalyticsData(data.analytics);
+      } catch (err) {
+        setError(err.message || "Failed to fetch analytics");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [shortCode, FetchWithAuth]);
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center text-gray-400">Loading analytics...</div>
+    );
+  }
+
+  if (error) {
+    return <div className="p-10 text-center text-red-300">{error}</div>;
+  }
+
+  if (!selectedUrl || !analyticsData) {
+    return (
+      <div className="p-10 text-center text-gray-400">
+        No analytics available yet.
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-[1600px]">
@@ -34,12 +80,12 @@ const Analytics = () => {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white">
               <Link2 size={15} />
-              short.ly/{selectedUrl.shortCode}
+              {selectedUrl.shortUrl}
             </span>
 
             <span className="inline-flex items-center gap-2 text-xs text-slate-500">
               <CalendarDays size={14} />
-              Created {selectedUrl.createdAt}
+              Created {new Date(selectedUrl.createdAt).toLocaleDateString()}
             </span>
           </div>
 
@@ -62,22 +108,13 @@ const Analytics = () => {
       <AnalyticsOverview analytics={analyticsData} />
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <BarChart
-          data={analyticsData.dailyClicks}
-          title="Requests processed"
-        />
+        <BarChart data={analyticsData.dailyClicks} title="Requests processed" />
 
-        <PieChart
-          data={analyticsData.browsers}
-          title="Browser distribution"
-        />
+        <PieChart data={analyticsData.browsers} title="Browser distribution" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <PieChart
-          data={analyticsData.devices}
-          title="Device distribution"
-        />
+        <PieChart data={analyticsData.devices} title="Device distribution" />
 
         <div className="rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur sm:p-6">
           <h3 className="font-semibold">Traffic by country</h3>
@@ -88,7 +125,9 @@ const Analytics = () => {
           <div className="mt-6 space-y-5">
             {analyticsData.countries.map((country) => {
               const percentage = Math.round(
-                (country.value / analyticsData.totalClicks) * 100
+                analyticsData.totalClicks
+                  ? (country.value / analyticsData.totalClicks) * 100
+                  : 0,
               );
 
               return (

@@ -43,3 +43,20 @@ export const deleteShortUrl = async (urlId, FetchWithAuth) => {
   const data = await response.json().catch(() => ({}));
   return data;
 };
+
+export const getUrlAnalytics = async (shortCode, FetchWithAuth) => {
+  const endpoint = shortCode
+    ? `/api/user/analytics/${shortCode}`
+    : "/api/user/analytics";
+  const response = await FetchWithAuth(endpoint, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to fetch analytics");
+  }
+
+  const data = await response.json();
+  return data;
+};
