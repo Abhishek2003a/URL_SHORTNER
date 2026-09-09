@@ -13,13 +13,15 @@ const requiredEnvVars = [
 
 const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
 if (missingEnvVars.length > 0) {
-  console.error(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
+  console.error(
+    `Missing required environment variables: ${missingEnvVars.join(", ")}`,
+  );
   process.exit(1);
 }
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
@@ -51,6 +53,6 @@ app.get("/:shortCode", redirecttoOriginalURL);
 app.get("/", (req, res) => {
   res.send("Hello From Server...!");
 });
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+app.listen(port,"0.0.0.0", () => {
+  console.log(`Server listening on port${port}`);
 });

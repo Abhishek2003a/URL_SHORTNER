@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 
 import Navbar from "../components/landing/Navbar";
 import HeroSection from "../components/landing/HeroSection";
-import Features from "../components/landing/Features";
+import Features from "../components/landing/features";
 import HowItWorks from "../components/landing/HowItWorks";
 import CTA from "../components/landing/CTA";
 import Footer from "../components/landing/Footer";
